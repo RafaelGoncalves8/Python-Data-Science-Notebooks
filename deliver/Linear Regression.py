@@ -28,10 +28,9 @@ import matplotlib.pyplot as plt
 M = 50
 N = 1
 
-# Random X and Y
-x = np.array([[(i+1)*random.gauss(3,1)] for i in range(M)]);
-y = np.array([((2*i+1)*np.random.random(1)+(20+5*i)) for i in range(M)]);
-theta = np.zeros([N+1,1])
+# Random X and Y (y = ax + b w/ a~10, b~4)
+x = np.array([[max(i,1)*random.gauss(1,0.10)] for i in range(M)]);
+y = np.array([[(max(i,1)*random.gauss(4,1)+(10))] for i in range(M)]);
 
 print("    x     |     y    ")
 for i in range(M):
@@ -50,8 +49,18 @@ plt.show()
 # In[4]:
 
 
-x = (x - np.average(x)*np.ones(x.shape))/(np.max(x) - np.min(x))
-y = (y - np.average(y)*np.ones(y.shape))/(np.max(y) - np.min(y))
+min_val = [np.min(x), np.min(y)]
+interval = [(np.max(x) - np.min(x)), (np.max(y) - np.min(y))]
+
+x = (x - min_val[0]*np.ones(x.shape))/interval[0]
+y = (y - min_val[1]*np.ones(y.shape))/interval[1]
+
+
+# In[5]:
+
+
+plt.plot(x, y, '.'), plt.xlabel('x'), plt.ylabel('y')
+plt.show()
 
 
 # # Hyphotesis and Cost function
@@ -78,41 +87,29 @@ y = (y - np.average(y)*np.ones(y.shape))/(np.max(y) - np.min(y))
 # 
 # $$\mathbf{h_\theta} = \mathbf{X'\theta}$$
 
-# In[5]:
+# In[6]:
 
 
 x_prime = np.hstack((np.ones((M,1)), x)); x_prime
 
 
-# In[6]:
-
-
-def h (x_prime):
-    global theta
-    return np.dot(x_prime, theta)
-
-
 # In[7]:
 
 
-def J_h (h):
-    global y
-    return np.sum((h-y)**2)/(2*M); J # initial error
+theta = np.zeros([N+1,1])
 
 
 # In[8]:
 
 
-def J_theta(theta):
-    global x_prime, y
-    h = np.dot(x_prime, theta)
-    return np.sum((h-y)**2)/(2*M);
+h = lambda X, theta: np.dot(X, theta)
 
 
 # In[9]:
 
 
-J_theta(theta)
+def J (X, y, theta):
+    return np.sum((h(X,theta)-y)**2)/(2*M)
 
 
 # # Gradient descent
@@ -125,63 +122,49 @@ J_theta(theta)
 # 
 # $$\boldsymbol{\theta} \leftarrow \boldsymbol{\theta} - \frac{\alpha}{M}\mathbf{X' ^T(h_\theta - y)}$$
 
-# In[15]:
+# In[10]:
 
 
-x_axis = np.linspace(-10, 100)
-theta_0 = np.linspace(-3000,3000,100)/1000
-theta_1 = np.linspace(-1500,1500,100)/1000
-
-X, Y = np.meshgrid(theta_0, theta_1, sparse=False)
-
-Z = np.zeros((100,100))
-
-for i, e in enumerate(X[0]):
-    for j, f in enumerate(Y[:,0]):
-        Z[i,j] = J_theta(np.array([[e],[f]]))
-        print(e,f,Z[i,j])
+def gradient_step(X, y, theta, alpha=1):
+    return theta - alpha*(np.dot(X.T, (h(X,theta)-y)))/M
 
 
 # In[11]:
 
 
-def gradient_descent(X, y, alpha=3):
-    try:
-        M = X.size[0]
-    except:
-        M = X.size
-        
-    global theta
-    
-    #h = h(X)
-    theta = theta - alpha*(np.dot(X.T,(h(X)-y)))/M
-    return theta
+axis_x = np.linspace(-50, 150, 100)/100
+axis_theta_0 = np.linspace(-100, 100, 100)/100
+axis_theta_1 = np.linspace(-100, 100, 100)/100
+
+X, Y = np.meshgrid(axis_theta_0, axis_theta_1, sparse=False)
+Z = np.zeros((100,100))
+
+for i, e in enumerate(X[0]):
+    for j, f in enumerate(Y[:,0]):
+        Z[i,j] = J(x_prime, y, np.array([[e],[f]]))
+        #print(e,f,Z[i,j])
 
 
 # In[12]:
 
 
-
-for i in range(20):
-    
-    H = h(x_prime)
-    
+for i in range(50):
     print("iter = ", i)
     print("theta = %.4f, %.4f" % (theta[0,0], theta[1,0]))
-    print("cost function = %.4f\n" % J_h(H))
+    print("cost function = %.4f\n" % J(x_prime,y,theta))
     
     fig, axis = plt.subplots(nrows=1, ncols=2)
     fig.set_size_inches(15,5)
     axis[0].plot(x, y, '.'), axis[0].set_xlabel('x'), axis[0].set_ylabel('y'), axis[0].set_xlim([-0.1,1]),axis[0].set_ylim([-0.1,1])
-    axis[0].plot(x_axis, theta[0] +x_axis*theta[1] )                      # regression
+    axis[0].plot(axis_x, theta[0] +axis_x*theta[1] )                      # regression
     
-    axis[1].contour(X, Y, Z, 40), axis[1].set_xlabel('theta 0'), axis[1].set_ylabel('theta 1')
-    axis[1].set_xlim([-4,4]),axis[1].set_ylim([-1,1])
-    axis[1].plot(theta[0,0], theta[1,0], 'ro')
+    axis[1].contour(X, Y, Z, 250), axis[1].set_xlabel('theta 1'), axis[1].set_ylabel('theta 0')
+    #axis[1].set_xlim([-1,1]),axis[1].set_ylim([-1,1])
+    axis[1].plot(theta[1,0], theta[0,0], 'ro')
     
     plt.show()
     
-    theta = gradient_descent(x_prime, y)
+    theta = gradient_step(x_prime, y, theta, 1)
 
 
 # In[13]:
@@ -191,26 +174,21 @@ i += 1
 
 print("iter = ", i)
 print("theta = %.4f, %.4f" % (theta[0,0], theta[1,0]))
-#print("cost function = %.4f\n" % (h))
+print("cost function = %.4f\n" % J(x_prime,y,theta))
 
 fig, axis = plt.subplots(nrows=1, ncols=2)
+fig.set_size_inches(15,5)
+axis[0].plot(x, y, '.'), axis[0].set_xlabel('x'), axis[0].set_ylabel('y'), axis[0].set_xlim([-0.1,1]),axis[0].set_ylim([-0.1,1])
+axis[0].plot(axis_x, theta[0] +axis_x*theta[1] )                      # regression
 
-axis[0].plot(x, y, '.'), axis[0].set_xlabel('x'), axis[0].set_ylabel('y') # data
-axis[0].set_xlim([-0.2,1.0]),axis[0].set_ylim([-0.1,1.0])
-axis[0].plot(x_axis, theta[0] +x_axis*theta[1] )                      # regression
-
-
-axis[1].contour(X, Y, Z), axis[1].set_xlabel('theta 0'), axis[1].set_ylabel('theta 1')
-axis[1].plot(theta[0,0], theta[1,0], 'ro')
+axis[1].contour(X, Y, Z, 250), axis[1].set_xlabel('theta 1'), axis[1].set_ylabel('theta 0')
+#axis[1].set_xlim([-1,1]),axis[1].set_ylim([-1,1])
+axis[1].plot(theta[1,0], theta[0,0], 'ro')
 
 plt.show()
 
 
-# In[ ]:
-
-
-
-
+# # Denormalize
 
 # In[ ]:
 

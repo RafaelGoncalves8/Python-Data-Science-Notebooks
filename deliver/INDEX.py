@@ -1,6 +1,15 @@
 
 # coding: utf-8
 
+# # Index
+
+# 1. Machine Learning
+#     - Linear Regression
+#     - Example of Multivariate Linear Regression
+#     - Logistic Regression
+#     - Example of One-vs-all Logistic Regression
+# 2
+
 # # Notation
 
 # $a$ - 1D variable  
