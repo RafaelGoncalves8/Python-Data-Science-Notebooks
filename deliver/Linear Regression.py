@@ -8,11 +8,10 @@ get_ipython().magic('matplotlib inline')
 
 import random
 import numpy as np
-import scipy
 import matplotlib.pyplot as plt
 
 
-# Linear regression is an algorithm for predicting values based on another features. It is a supervised learning algorithm - i.e. is fed with samples and it's corresponding labels ("correct values").
+# Linear regression is a supervised learning (has labeled data as input) algorithm for predicting values. The algorithm is fed with samples - with multiple features and it's corresponding labels ("correct values") for what you are trying to predict.
 
 # # Variables and Constants
 
@@ -44,16 +43,25 @@ plt.plot(x, y, '.'), plt.xlabel('x'), plt.ylabel('y')
 plt.show()
 
 
-# # Normalizing
+# # Feature scaling
+
+# For making every example in between 0 and 1 subtract the minimum value of each feature and divide by its range:
+# 
+# $$\delta = max(\mathbf{x_n}) - min(\mathbf{x_n})$$  
+# $$min = min(\mathbf{x_n})$$  
+# $$x_{mn} \leftarrow \frac{x_{mn} - min}{\delta}$$  
 
 # In[4]:
 
 
-min_val = [np.min(x), np.min(y)]
-interval = [(np.max(x) - np.min(x)), (np.max(y) - np.min(y))]
+min = [[np.min(x)], [np.min(y)]]
+delta = [[(np.max(x) - np.min(x))], [(np.max(y) - np.min(y))]]
 
-x = (x - min_val[0]*np.ones(x.shape))/interval[0]
-y = (y - min_val[1]*np.ones(y.shape))/interval[1]
+x_old = x[:]
+y_old = y[:]
+
+x = (x - min[0]*np.ones(x.shape))/delta[0]
+#y = (y - min[1]*np.ones(y.shape))/delta[1]
 
 
 # In[5]:
@@ -69,7 +77,7 @@ plt.show()
 
 # One possibility for cost function is to use the *Mean Squared Error* (MSE) formula:  
 # 
-# $$J = \frac{1}{2M}\sum\limits_{m = 1}^{M}(h_m - y_m)^2$$  
+# $$J = \frac{1}{2M}\sum \limits_{m = 1}^{M}(h_m - y_m)^2$$  
 # 
 # Or in the vectorized notation (thus less computacionaly demanding):  
 # 
@@ -114,11 +122,24 @@ def J (X, y, theta):
 
 # # Gradient descent
 
-# $$\boldsymbol{\theta} = \boldsymbol{\theta} - \frac{\partial{J}}{\partial \boldsymbol{\theta}}$$
+# Gradient descent is a simple method for finding minima (or maxima) of a function. It function by taking steps in the variables based on the gradient of the function. In the case of the linear regression the cost function J is convex (i.e. the only minimum of the function is the local minimum) so the Gradient Descent is a good method for finding minimum.  
+
+# The step of gradient descent is defined as:
 # 
-# $$\frac{\partial J}{\partial \theta_n} = (h_\theta(\mathbf{x_m}) - y_m)x_{mn}$$
+# $$\boldsymbol{\theta} \rightarrow \boldsymbol{\theta} - \alpha\frac{\partial{J}}{\partial \boldsymbol{\theta}}$$
 # 
-# $$\theta_n \leftarrow \theta_j - \frac{\alpha}{M} \sum \limits _{m=1}^M(h_\theta(\mathbf{x_m}) - y_m)x_{mn}$$
+# Where alpha is a step magnitude constant.  
+# Given the derivate of the hypotesis function:
+# 
+# $$\frac{\partial J}{\partial \theta_n} = \frac{(h_\theta - y_m)x_{mn}}{M}$$
+# 
+# The particular step for the linear regression is defined as:
+# 
+# $$\theta_n \leftarrow \theta_n - \frac{\alpha}{M} \sum \limits _{m=1}^M (h_\theta - y_m)x_{mn}$$
+# 
+# $$\boldsymbol{\theta} \leftarrow \boldsymbol{\theta} - \frac{\alpha}{M} \sum \limits _{m=1}^M(h_\theta - y_m)\mathbf{x_{m}^T}$$
+# 
+# Or in vectorized notation:
 # 
 # $$\boldsymbol{\theta} \leftarrow \boldsymbol{\theta} - \frac{\alpha}{M}\mathbf{X' ^T(h_\theta - y)}$$
 
@@ -133,8 +154,8 @@ def gradient_step(X, y, theta, alpha=1):
 
 
 axis_x = np.linspace(-50, 150, 100)/100
-axis_theta_0 = np.linspace(-100, 100, 100)/100
-axis_theta_1 = np.linspace(-100, 100, 100)/100
+axis_theta_0 = np.linspace(-200, 25000, 100)/100
+axis_theta_1 = np.linspace(-200, 25000, 100)/100
 
 X, Y = np.meshgrid(axis_theta_0, axis_theta_1, sparse=False)
 Z = np.zeros((100,100))
@@ -153,16 +174,16 @@ for i in range(50):
     print("theta = %.4f, %.4f" % (theta[0,0], theta[1,0]))
     print("cost function = %.4f\n" % J(x_prime,y,theta))
     
-    fig, axis = plt.subplots(nrows=1, ncols=2)
-    fig.set_size_inches(15,5)
-    axis[0].plot(x, y, '.'), axis[0].set_xlabel('x'), axis[0].set_ylabel('y'), axis[0].set_xlim([-0.1,1]),axis[0].set_ylim([-0.1,1])
-    axis[0].plot(axis_x, theta[0] +axis_x*theta[1] )                      # regression
+    #fig, axis = plt.subplots(nrows=1, ncols=2)
+    #fig.set_size_inches(15,5)
+    #axis[0].plot(x, y, '.'), axis[0].set_xlabel('x'), axis[0].set_ylabel('y'), axis[0].set_xlim([-0.1,1]),axis[0].set_ylim([-0.1,1])
+    #axis[0].plot(axis_x, theta[0] +axis_x*theta[1] )                      # regression
     
-    axis[1].contour(X, Y, Z, 250), axis[1].set_xlabel('theta 1'), axis[1].set_ylabel('theta 0')
-    #axis[1].set_xlim([-1,1]),axis[1].set_ylim([-1,1])
-    axis[1].plot(theta[1,0], theta[0,0], 'ro')
+    #axis[1].contour(X, Y, Z, 250), axis[1].set_xlabel('theta 1'), axis[1].set_ylabel('theta 0')
+    ##axis[1].set_xlim([-1,1]),axis[1].set_ylim([-1,1])
+    #axis[1].plot(theta[1,0], theta[0,0], 'ro')
     
-    plt.show()
+    #plt.show()
     
     theta = gradient_step(x_prime, y, theta, 1)
 
@@ -178,7 +199,7 @@ print("cost function = %.4f\n" % J(x_prime,y,theta))
 
 fig, axis = plt.subplots(nrows=1, ncols=2)
 fig.set_size_inches(15,5)
-axis[0].plot(x, y, '.'), axis[0].set_xlabel('x'), axis[0].set_ylabel('y'), axis[0].set_xlim([-0.1,1]),axis[0].set_ylim([-0.1,1])
+axis[0].plot(x, y, '.'), axis[0].set_xlabel('x'), axis[0].set_ylabel('y'), #axis[0].set_xlim([-0.1,1]),axis[0].set_ylim([-0.1,1])
 axis[0].plot(axis_x, theta[0] +axis_x*theta[1] )                      # regression
 
 axis[1].contour(X, Y, Z, 250), axis[1].set_xlabel('theta 1'), axis[1].set_ylabel('theta 0')
@@ -188,7 +209,33 @@ axis[1].plot(theta[1,0], theta[0,0], 'ro')
 plt.show()
 
 
-# # Denormalize
+# # Rescale
+
+# Once you have your hypothesis function computated, one can easily retrieve its corresponding form in the non-normalized dataset
+
+# $$\theta_0 \leftarrow \theta_0 - min$$  
+# $$\theta_1 \leftarrow \frac{\theta_1}{\delta}$$ 
+
+# In[14]:
+
+
+theta[1] /= delta[0][0] #*delta[1] #+ min[0]+min[1]
+theta[0] -= min[0][0]
+
+
+# In[15]:
+
+
+axis_x = np.linspace(-50, 5500, 100)/100
+
+
+# In[16]:
+
+
+plt.plot(x_old, y, '.'), plt.xlabel('x'), plt.ylabel('y')
+plt.plot(axis_x, theta[0] + axis_x*theta[1])
+plt.show()
+
 
 # In[ ]:
 
