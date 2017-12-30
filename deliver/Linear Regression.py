@@ -43,7 +43,7 @@ plt.plot(x, y, '.'), plt.xlabel('x'), plt.ylabel('y')
 plt.show()
 
 
-# # Feature scaling
+# # Feature scaling (simple rescale)
 
 # For making every example in between 0 and 1 subtract the minimum value of each feature and divide by its range:
 # 
@@ -58,10 +58,8 @@ min = [[np.min(x)], [np.min(y)]]
 delta = [[(np.max(x) - np.min(x))], [(np.max(y) - np.min(y))]]
 
 x_old = x[:]
-y_old = y[:]
 
 x = (x - min[0]*np.ones(x.shape))/delta[0]
-#y = (y - min[1]*np.ones(y.shape))/delta[1]
 
 
 # In[5]:
@@ -73,15 +71,15 @@ plt.show()
 
 # # Hyphotesis and Cost function
 
-# The objective of the linear regression is to find a *hyphotesis function*  $\mathbf{h_\theta} = \mathbf{h_\theta (X)}$ - or the parameters of this function $\boldsymbol{\theta}$ - such as the *cost function* $J = J(\boldsymbol{\theta})$ - diference between predictions and labels - is minimized. 
+# The objective of the linear regression is to find a *hyphotesis function*  $\mathbf{h_\theta} = \mathbf{h_\theta (X)}$ - or the parameters of this function $\boldsymbol{\theta}$ - such as the *cost function* $v = v(\boldsymbol{\theta})$ - diference between predictions and labels - is minimized. 
 
-# One possibility for cost function is to use the *Mean Squared Error* (MSE) formula:  
+# The most common cost function used in the linear regression is the *Mean Squared Error* (MSE) formula:  
 # 
-# $$J = \frac{1}{2M}\sum \limits_{m = 1}^{M}(h_m - y_m)^2$$  
+# $$v = \frac{1}{2M}\sum \limits_{m = 1}^{M}(h_m - y_m)^2$$  
 # 
 # Or in the vectorized notation (thus less computacionaly demanding):  
 # 
-# $$J = \frac{1}{2M}(\mathbf{h_\theta} - \mathbf{y})^T(\mathbf{h_\theta} - \mathbf{y})$$
+# $$v = \frac{1}{2M}(\mathbf{h_\theta} - \mathbf{y})^T(\mathbf{h_\theta} - \mathbf{y})$$
 
 # For the hyphotesis, in the case of linear regression, the most general formula is:
 # 
@@ -116,7 +114,7 @@ h = lambda X, theta: np.dot(X, theta)
 # In[9]:
 
 
-def J (X, y, theta):
+def v (X, y, theta):
     return np.sum((h(X,theta)-y)**2)/(2*M)
 
 
@@ -126,12 +124,12 @@ def J (X, y, theta):
 
 # The step of gradient descent is defined as:
 # 
-# $$\boldsymbol{\theta} \rightarrow \boldsymbol{\theta} - \alpha\frac{\partial{J}}{\partial \boldsymbol{\theta}}$$
+# $$\boldsymbol{\theta} \rightarrow \boldsymbol{\theta} - \alpha\frac{\partial{v}}{\partial \boldsymbol{\theta}}$$
 # 
 # Where alpha is a step magnitude constant.  
 # Given the derivate of the hypotesis function:
 # 
-# $$\frac{\partial J}{\partial \theta_n} = \frac{(h_\theta - y_m)x_{mn}}{M}$$
+# $$\frac{\partial v}{\partial \theta_n} = \frac{(h_\theta - y_m)x_{mn}}{M}$$
 # 
 # The particular step for the linear regression is defined as:
 # 
@@ -150,7 +148,7 @@ def gradient_step(X, y, theta, alpha=1):
     return theta - alpha*(np.dot(X.T, (h(X,theta)-y)))/M
 
 
-# In[11]:
+# In[12]:
 
 
 axis_x = np.linspace(-50, 150, 100)/100
@@ -162,17 +160,17 @@ Z = np.zeros((100,100))
 
 for i, e in enumerate(X[0]):
     for j, f in enumerate(Y[:,0]):
-        Z[i,j] = J(x_prime, y, np.array([[e],[f]]))
+        Z[i,j] = v(x_prime, y, np.array([[e],[f]]))
         #print(e,f,Z[i,j])
 
 
-# In[12]:
+# In[13]:
 
 
 for i in range(50):
     print("iter = ", i)
     print("theta = %.4f, %.4f" % (theta[0,0], theta[1,0]))
-    print("cost function = %.4f\n" % J(x_prime,y,theta))
+    print("cost function = %.4f\n" % v(x_prime,y,theta))
     
     #fig, axis = plt.subplots(nrows=1, ncols=2)
     #fig.set_size_inches(15,5)
@@ -188,14 +186,14 @@ for i in range(50):
     theta = gradient_step(x_prime, y, theta, 1)
 
 
-# In[13]:
+# In[15]:
 
 
 i += 1
 
 print("iter = ", i)
 print("theta = %.4f, %.4f" % (theta[0,0], theta[1,0]))
-print("cost function = %.4f\n" % J(x_prime,y,theta))
+print("cost function = %.4f\n" % v(x_prime,y,theta))
 
 fig, axis = plt.subplots(nrows=1, ncols=2)
 fig.set_size_inches(15,5)
@@ -216,20 +214,20 @@ plt.show()
 # $$\theta_0 \leftarrow \theta_0 - min$$  
 # $$\theta_1 \leftarrow \frac{\theta_1}{\delta}$$ 
 
-# In[14]:
+# In[16]:
 
 
 theta[1] /= delta[0][0] #*delta[1] #+ min[0]+min[1]
 theta[0] -= min[0][0]
 
 
-# In[15]:
+# In[17]:
 
 
 axis_x = np.linspace(-50, 5500, 100)/100
 
 
-# In[16]:
+# In[18]:
 
 
 plt.plot(x_old, y, '.'), plt.xlabel('x'), plt.ylabel('y')
@@ -237,8 +235,8 @@ plt.plot(axis_x, theta[0] + axis_x*theta[1])
 plt.show()
 
 
-# In[ ]:
+# In[19]:
 
 
-
+theta
 
