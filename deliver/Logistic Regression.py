@@ -35,12 +35,14 @@ y2 = np.array((M_half)*[0])
 X = np.vstack([X1, X2])
 y = np.hstack([y1.T, y2.T])
 
+y = y.reshape([M,1])
+
 print("    x1    |     x2    |     y    ")
 for i in range(M):
-    print("%9.4f | %9.4f | %9.4f" % (X[i,0], X[i,1], y[i]))
+    print("%9.4f | %9.4f | %9.4f" % (X[i,0], X[i,1], y[i,0]))
 
 
-# In[8]:
+# In[3]:
 
 
 plt.plot(X[:M_half,0], X[:M_half,1], 'X'), plt.xlabel('x0'), plt.ylabel('x1')
@@ -65,7 +67,7 @@ delta = np.array([(np.max(X[:,0]) - np.min(X[:,0])), (np.max(X[:,1]) - np.min(X[
 X = (X - np.ones([M,1])*mu)*(np.ones([M,1])*(1/delta))
 
 
-# In[7]:
+# In[5]:
 
 
 plt.plot(X[:M_half,0], X[:M_half,1], 'X'), plt.xlabel('x0'), plt.ylabel('x1')
@@ -101,11 +103,98 @@ plt.show()
 
 # One possibility of cost function for a hypothis ranging between 0 and 1 is to use the *Cross-entropy cost* formula:  
 # 
-# $$v = -\frac{1}{2M}\sum \limits_{m = 1}^{M}[y_m log(h_\theta(\mathbf{x_m})) + (1-y_m)log(1 - h_\theta(\mathbf{x_m}))]$$  
+# $$v = -\frac{1}{M}\sum \limits_{m = 1}^{M}[y_m log(h_\theta(\mathbf{x_m})) + (1-y_m)log(1 - h_\theta(\mathbf{x_m}))]$$  
 # 
 # Or in the vectorized notation (thus less computacionaly demanding):  
 # 
-# $$v = -\frac{1}{2M}[\mathbf{y} log(\mathbf{h_\theta}) + (\mathbf{1_m}-\mathbf{y})log(\mathbf{1_m} - \mathbf{h_\theta})]$$ 
+# $$v = -\frac{1}{M}[\mathbf{y} log(\mathbf{h_\theta}) + (\mathbf{1_m}-\mathbf{y})log(\mathbf{1_m} - \mathbf{h_\theta})]$$ 
+
+# In[6]:
+
+
+X_prime = np.hstack((np.ones((M,1)), X)); X_prime
+
+
+# In[7]:
+
+
+theta = np.zeros([N+1,1])
+
+
+# In[8]:
+
+
+g = lambda z: 1/(1 + np.exp(-z))
+
+
+# In[9]:
+
+
+h = lambda X, theta: g(np.dot(X, theta))
+
+
+# In[10]:
+
+
+def v (X, y, theta):
+    return -(sum(y*np.log(h(X, theta)) + (1 - y)*np.log(1 - h(X, theta)))/(M))[0]
+
+
+# In[11]:
+
+
+v(X_prime, y, theta)
+
+
+# In[12]:
+
+
+def gradient_step(X, y, theta, alpha=1):
+    return theta - alpha*(np.dot(X.T, (h(X,theta)-y)))/M
+
+
+# In[13]:
+
+
+axis_x1 = np.linspace(-50, 150, 100)/100
+axis_x2 = np.linspace(-50, 150, 100)/100
+axis_X = np.vstack([axis_x1, axis_x2])
+
+
+# In[14]:
+
+
+for i in range(50):
+    print("iter = ", i)
+    print("theta = %.4f, %.4f, %.4f" % (theta[0,0], theta[1,0], theta[2,0]))
+    print("cost function = %.4f\n" % v(X_prime,y,theta))
+    
+    plt.plot(X[:M_half,0], X[:M_half,1], 'X'), plt.xlabel('x0'), plt.ylabel('x1')
+    plt.plot(X[M_half:,0], X[M_half:,1], 'o'), plt.xlabel('x0'), plt.ylabel('x1')
+    plt.plot(axis_x1, (-1*axis_x1*(theta[1] - 1) - theta[0] - 0.5)/(theta[2] - 1) )
+
+    
+    plt.show()
+    
+    theta = gradient_step(X_prime, y, theta, 10)
+
+
+# In[15]:
+
+
+i += 1
+
+print("iter = ", i)
+print("theta = %.4f, %.4f, %.4f" % (theta[0,0], theta[1,0], theta[2,0]))
+print("cost function = %.4f\n" % v(X_prime,y,theta))
+
+plt.plot(X[:M_half,0], X[:M_half,1], 'X'), plt.xlabel('x0'), plt.ylabel('x1')
+plt.plot(X[M_half:,0], X[M_half:,1], 'o'), plt.xlabel('x0'), plt.ylabel('x1')
+plt.plot(axis_x1, (-1*axis_x1*(theta[1] - 1) - theta[0] - 0.5)/(theta[2] - 1) )
+
+
+plt.show()
+
 
 # In[ ]:
 
